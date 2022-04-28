@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Uber</string>
+    <string name="duynn_server_url">http://54.199.113.43/parse/</string>
+
+    <!-- Paste BOTH strings as required -->
+    <string name="duynn_app_id">myappID</string>
+    <string name="duynn_client_key">KpUU0o1YlgWA</string>
+</resources>
