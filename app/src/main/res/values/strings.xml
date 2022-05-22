@@ -5,4 +5,6 @@
     <!-- Paste BOTH strings as required -->
     <string name="duynn_app_id">myappID</string>
     <string name="duynn_client_key">KpUU0o1YlgWA</string>
+    <string name="title_activity_rider">RiderActivity</string>
+    <string name="title_activity_driver">DriverActivity</string>
 </resources>
