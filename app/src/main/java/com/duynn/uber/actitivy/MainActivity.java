@@ -1,4 +1,4 @@
-package com.duynn.uber;
+package com.duynn.uber.actitivy;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,6 +9,7 @@ import android.widget.Switch;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.duynn.uber.R;
 import com.parse.LogInCallback;
 import com.parse.ParseAnalytics;
 import com.parse.ParseAnonymousUtils;

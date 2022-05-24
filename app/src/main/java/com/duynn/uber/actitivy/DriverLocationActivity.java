@@ -1,14 +1,25 @@
-package com.duynn.uber;
+package com.duynn.uber.actitivy;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.RelativeLayout;
 
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
+import com.duynn.uber.R;
 import com.duynn.uber.databinding.ActivityDriverBinding;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -22,6 +33,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.parse.FindCallback;
 import com.parse.ParseException;
+import com.parse.ParseGeoPoint;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
@@ -32,9 +44,13 @@ import java.util.List;
 
 public class DriverLocationActivity extends FragmentActivity implements OnMapReadyCallback {
 
+    Intent intent;
+    LocationManager locationManager;
+    LocationListener locationListener;
+    Handler handler = new Handler();
     private GoogleMap mMap;
     private ActivityDriverBinding binding;
-    Intent intent;
+
     public void acceptRequest(View view) {
 
         ParseQuery<ParseObject> query = ParseQuery.getQuery("Request");
@@ -65,7 +81,7 @@ public class DriverLocationActivity extends FragmentActivity implements OnMapRea
                                                         + "," + intent.getDoubleExtra("driverLongitude", 0)
                                                         + "&daddr=" + intent.getDoubleExtra("requestLatitude", 0)
                                                         + "," + intent.getDoubleExtra("requestLongitude", 0)));
-//                                        directionsIntent.setPackage("com.google.android.apps.maps");
+                                        directionsIntent.setPackage("com.google.android.apps.maps");
                                         startActivity(directionsIntent);
 
                                     }
@@ -81,8 +97,22 @@ public class DriverLocationActivity extends FragmentActivity implements OnMapRea
 
             }
         });
-
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED) {
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+                    Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                }
+            }
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -97,6 +127,49 @@ public class DriverLocationActivity extends FragmentActivity implements OnMapRea
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        //update location
+        locationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
+        locationListener = new LocationListener() {
+            @Override
+            public void onLocationChanged(@NonNull Location location) {
+                ParseUser.getCurrentUser().put("location", new ParseGeoPoint(location.getLatitude(), location.getLongitude()));
+                ParseUser.getCurrentUser().saveInBackground();
+            }
+        };
+        if (Build.VERSION.SDK_INT < 23) {
+            locationManager.requestLocationUpdates(
+                    LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+        } else {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            } else {
+                locationManager.requestLocationUpdates(
+                        LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+                Location lastKnownLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                if (lastKnownLocation != null) {
+                    ParseUser.getCurrentUser().put("location", new ParseGeoPoint(lastKnownLocation.getLatitude(), lastKnownLocation.getLongitude()));
+                    ParseUser.getCurrentUser().saveInBackground();
+                }
+            }
+        }
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+                        == PackageManager.PERMISSION_GRANTED) {
+                    locationManager.requestLocationUpdates(
+                            LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+                    Location lastKnowLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                    if (lastKnowLocation != null) {
+                        ParseUser.getCurrentUser().put("location", new ParseGeoPoint(lastKnowLocation.getLatitude(), lastKnowLocation.getLongitude()));
+                        ParseUser.getCurrentUser().saveInBackground();
+                    }
+                }
+            }
+        }, 2000);
 
     }
 
@@ -128,7 +201,7 @@ public class DriverLocationActivity extends FragmentActivity implements OnMapRea
 //        mMap.moveCamera(CameraUpdateFactory.newLatLng(driverLocation));
 //        mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
 
-        RelativeLayout mapLayout = (RelativeLayout)findViewById(R.id.mapRelativeLayout);
+        RelativeLayout mapLayout = (RelativeLayout) findViewById(R.id.mapRelativeLayout);
         mapLayout.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
@@ -155,7 +228,6 @@ public class DriverLocationActivity extends FragmentActivity implements OnMapRea
 //                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(driverLocation, 15));
             }
         });
-
 
 
     }

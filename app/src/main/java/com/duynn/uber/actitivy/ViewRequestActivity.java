@@ -1,4 +1,4 @@
-package com.duynn.uber;
+package com.duynn.uber.actitivy;
 
 import android.Manifest;
 import android.content.Intent;
@@ -18,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.duynn.uber.R;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseGeoPoint;
@@ -64,7 +65,7 @@ public class ViewRequestActivity extends AppCompatActivity {
                                 if(requestLocation != null) {
                                     Double distanceInMeters = userLocation.distanceInKilometersTo(requestLocation);
                                     Double distanceOneDecimal = (double) Math.round(distanceInMeters * 10.0) / 10.0;
-                                    requestList.add(object.getString("name") + " - " + distanceOneDecimal.toString() + " km");
+                                    requestList.add(object.getString("username") + " - " + distanceOneDecimal.toString() + " km");
                                     requestLatitudes.add((requestLocation.getLatitude()));
                                     requestLongitudes.add((requestLocation.getLongitude()));
                                     usernames.add(object.getString("username"));

@@ -1,7 +1,8 @@
-package com.duynn.uber;
+package com.duynn.uber.actitivy;
 
 import android.app.Application;
 
+import com.duynn.uber.R;
 import com.parse.Parse;
 import com.parse.ParseACL;
 
